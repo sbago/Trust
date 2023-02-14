@@ -73,7 +73,7 @@ public class ConfigWindow : Window, IDisposable
                 }
             ImGui.EndCombo();
         }
-        if (ImGui.Button("开始"))
+        if (ImGui.Button("进入"))
         {
             Func.Fire();
         }
@@ -81,6 +81,11 @@ public class ConfigWindow : Window, IDisposable
         if(ImGui.Button("出发"))
         {
             Func.SelectYesContentsFinderConfirm();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("离开副本"))
+        {
+            Func.LeaveDuty();
         }
     }
 }

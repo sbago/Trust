@@ -40,6 +40,8 @@ namespace Trust.Windows
     {
         private static AgentInterface* Dawn => Framework.Instance()->GetUiModule()->GetAgentModule()->GetAgentByInternalId(AgentId.Dawn);
         private static AtkUnitBase* DawnAddon => (AtkUnitBase*) Dalamud.GameGui.GetAddonByName("Dawn", 1);
+        private static AgentInterface* ContentsFinderMenu => Framework.Instance()->GetUiModule()->GetAgentModule()->GetAgentByInternalId(AgentId.ContentsFinderMenu);
+        private static AtkUnitBase* ContentsFinderMenuAddon => (AtkUnitBase*)Dalamud.GameGui.GetAddonByName("ContentsFinderMenu", 1);
         private static bool CanDoSomething => Dawn->IsAgentActive();
         public static void OpenOrCloseDawn(bool open = true)
         {
@@ -80,6 +82,17 @@ namespace Trust.Windows
         public static void SelectYesContentsFinderConfirm()
         {
             Callback((AtkUnitBase*)Dalamud.GameGui.GetAddonByName("ContentsFinderConfirm", 1), 8);
+        }
+        public static void ShowContentsFinderMenu()
+        {
+            ContentsFinderMenu->Show();
+        }
+        public static void LeaveDuty()
+        {
+            if (!ContentsFinderMenu->IsAgentActive())
+                ShowContentsFinderMenu();
+            Callback(ContentsFinderMenuAddon, 0);
+            Callback((AtkUnitBase*)Dalamud.GameGui.GetAddonByName("SelectYesno", 1), 0);
         }
         private static void Callback(AtkUnitBase* unitBase, params object[] values)
         {
