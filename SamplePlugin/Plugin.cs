@@ -1,21 +1,21 @@
-﻿using Dalamud.Game.Command;
+using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using System.IO;
 using Dalamud.Interface.Windowing;
-using SamplePlugin.Windows;
+using Trust.Windows;
 
-namespace SamplePlugin
+namespace Trust
 {
     public sealed class Plugin : IDalamudPlugin
     {
-        public string Name => "Sample Plugin";
-        private const string CommandName = "/pmycommand";
+        public string Name => "Trust";
+        private const string CommandName = "/trust";
 
         private DalamudPluginInterface PluginInterface { get; init; }
         private CommandManager CommandManager { get; init; }
         public Configuration Configuration { get; init; }
-        public WindowSystem WindowSystem = new("SamplePlugin");
+        public WindowSystem WindowSystem = new("Trust");
 
         private ConfigWindow ConfigWindow { get; init; }
         private MainWindow MainWindow { get; init; }
@@ -26,7 +26,7 @@ namespace SamplePlugin
         {
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
-
+            Dalamud.Initialize(pluginInterface);
             this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             this.Configuration.Initialize(this.PluginInterface);
 
@@ -39,6 +39,7 @@ namespace SamplePlugin
             
             WindowSystem.AddWindow(ConfigWindow);
             WindowSystem.AddWindow(MainWindow);
+            ConfigWindow.IsOpen =true;
 
             this.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
