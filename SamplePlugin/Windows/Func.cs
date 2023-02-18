@@ -264,6 +264,16 @@ namespace Trust.Windows
             }
             return ret;
         }
+        public static void GetDutyTimeRemaining(out uint min,out uint second)
+        {
+            var text = ToDolistAddon->UldManager.NodeList[9]->GetAsAtkComponentNode()->Component->UldManager.NodeList[8]->GetAsAtkTextNode()->NodeText.ToString();
+            var index = text.IndexOf(":");
+            min = 0; second = 0;
+            if (index == -1)
+                return;
+            min = uint.Parse(text.Substring(0,index));
+            second = uint.Parse((text.Substring(index + 1)));
+        }
         public static uint DutyStep()
         {
             var ToDolistInfo = GetToDolistInfo();
