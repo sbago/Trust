@@ -4,6 +4,9 @@ using Dalamud.Plugin;
 using System.IO;
 using Dalamud.Interface.Windowing;
 using Trust.Windows;
+using Dalamud.Hooking;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using System;
 
 namespace Trust
 {
@@ -19,7 +22,12 @@ namespace Trust
 
         private ConfigWindow ConfigWindow { get; init; }
         private MainWindow MainWindow { get; init; }
-
+        private delegate uint action(uint a1, long a2,long a3);
+        private Hook<action> hook;
+        public delegate long SetPostionDelegate(IntPtr objAddress, float x, float y, float z);
+        public Hook<SetPostionDelegate> SetPostion;
+        public delegate long GetPostionDelegate(IntPtr objAddress);
+        public Hook<GetPostionDelegate> GetPostion;
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
             [RequiredVersion("1.0")] CommandManager commandManager)
@@ -48,10 +56,23 @@ namespace Trust
 
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
+            hook = Hook<action>.FromAddress(Dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 85 C0 75 02 33 C0"), detour);
+            hook.Enable();
+            //83 79 7C 00 75 09 F6 81 ?? ?? ?? ?? ?? 74 2A  get pos
+            //E8 ?? ?? ?? ?? 66 83 8B ?? ?? ?? ?? ?? 33 D2  set pos
+
+
+        }
+
+        private uint detour(uint a1, long a2, long a3)
+        {
+            var ret = hook.Original(a1, a2, a3);
+            return 0;
         }
 
         public void Dispose()
         {
+            hook.Dispose();
             this.WindowSystem.RemoveAllWindows();
             
             ConfigWindow.Dispose();

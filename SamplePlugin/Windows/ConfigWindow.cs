@@ -1,7 +1,12 @@
 using System;
 using System.Numerics;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging;
+using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
+using ImGuiScene;
 
 namespace Trust.Windows;
 
@@ -9,6 +14,11 @@ public class ConfigWindow : Window, IDisposable
 {
     private Configuration Configuration;
 
+    private long ptr;
+    private int index;
+    private IntPtr GetPos;
+    private IntPtr SetPos;
+    private IntPtr MouseToWorld;
     public ConfigWindow(Plugin plugin) : base(
         "Trust",
         ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
@@ -18,6 +28,10 @@ public class ConfigWindow : Window, IDisposable
         //this.SizeCondition = ImGuiCond.Always;
 
         this.Configuration = plugin.Configuration;
+        //E8 ?? ?? ?? ?? 66 83 8B ?? ?? ?? ?? ?? 33 D2
+        GetPos = Dalamud.SigScanner.ScanText("83 79 7C 00 75 09 F6 81 ?? ?? ?? ?? ?? 74 2A");
+        SetPos = Dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 66 83 8B ?? ?? ?? ?? ?? 33 D2");
+        MouseToWorld = Dalamud.SigScanner.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC ?? 48 8B E9 48 8B DA 48 8D 0D");
     }
 
     public void Dispose() { }
@@ -25,7 +39,7 @@ public class ConfigWindow : Window, IDisposable
     private string version;
     private int duty;
     private Character character;
-    public override void Draw()
+    public unsafe override void Draw()
     {
         // can't ref a property, so use a local copy
         var configValue = this.Configuration.SomePropertyToBeSavedAndWithADefault;
@@ -86,6 +100,24 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.Button("离开副本"))
         {
             Func.LeaveDuty();
+        }
+        ImGui.Text(ptr.ToString("x"));
+        ImGui.InputInt("#1", ref index);
+        if(ImGui.Button("更新"))
+        {
+            ptr = (long)((AtkUnitBase*)Dalamud.GameGui.GetAddonByName("Dawn", 1))->AtkEventListener.vfunc[index];
+            ImGui.SetClipboardText($"{ptr:x}");
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("auto"))
+        {
+            Func.AutoSelectYesContentsFinderConfirm();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("l"))
+        {
+            Func.TrunR(0f);
+            //Func.RemovAutoSelectYesContentsFinderConfirmEvent();
         }
     }
 }

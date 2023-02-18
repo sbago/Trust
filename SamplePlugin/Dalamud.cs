@@ -13,6 +13,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Data;
 
 namespace Trust
 {
@@ -34,5 +35,6 @@ namespace Trust
         [PluginService] public static GameGui GameGui { get; private set; }
         [PluginService] public static Framework Framework { get; private set; }
         [PluginService] public static ObjectTable ObjectTable { get; private set; }
+        [PluginService] public static DataManager DataManager { get; private set; }
     }
 }
