@@ -44,6 +44,50 @@ namespace Trust.Windows
     {
 
     }
+    public unsafe struct DawnInfo
+    {
+        public Version Version;
+        public uint Duty;
+        public string DutyName;
+        public CharacterInfo[] Characters = new CharacterInfo[4];
+
+        public DawnInfo()
+        {
+        }
+
+        public override string ToString()
+        {
+            var i =string.Empty;
+            i +=  $"\n Version:{Version} DutyName:{DutyName}";
+            for(var a =0;a<4;a++)
+            {
+                if(Characters[a].IsNull())
+                {
+                    PluginLog.Information("111111");
+                    i += $"\n Characters{a} is null.";
+                }
+                else
+                {
+                    i += $"\n Characters:{Characters[a].Name} {Characters[a].JobName} {Characters[a].Lvl} {Characters[a].CurrentExp} IsMaxLvl:{Characters[a].IsMaxLvl}";
+                }
+            }
+            return i;
+        }
+    }
+    public struct CharacterInfo
+    {
+        public bool _IsNull;
+        public string Name;
+        public uint Lvl;
+        public uint CurrentExp;
+        public uint MaxExp;
+        public string JobName;
+        public bool IsMaxLvl;
+        public bool IsNull()
+        {
+            return _IsNull;
+        }
+    }
     #endregion
     public unsafe static class Func
     {
@@ -175,11 +219,39 @@ namespace Trust.Windows
         }
         #endregion
         #region UIinfo
-        public static void GetDawn()
-        { }
+        public static DawnInfo GetDawnInfo()
+        {
+            var DawnInfo = new DawnInfo();
+            DawnInfo.Version = DawnAddon->UldManager.NodeList[97]->GetAsAtkComponentNode()->Component->UldManager.NodeList[3]->GetAsAtkNineGridNode()->AtkResNode.IsVisible ? Version.Shadowbringers : Version.Endwalker;
+            for (uint i = 0; i < 4; i++)
+            {
+                if(DawnAddon->GetNodeById(98 + i)->GetAsAtkComponentNode()->Component->UldManager.NodeList[9]->Color.A == 0x00)
+                    DawnInfo.Characters[i]._IsNull = true;
+                DawnInfo.Characters[i].JobName = DawnAddon->GetNodeById(98 + i)->GetAsAtkComponentNode()->Component->UldManager.NodeList[11]->GetAsAtkTextNode()->NodeText.ToString();//职业
+                DawnInfo.Characters[i].Name = DawnAddon->GetNodeById(98 + i)->GetAsAtkComponentNode()->Component->UldManager.NodeList[19]->GetAsAtkTextNode()->NodeText.ToString();//name
+                DawnInfo.Characters[i].Lvl = uint.Parse(DawnAddon->GetNodeById(98 + i)->GetAsAtkComponentNode()->Component->UldManager.NodeList[22]->GetAsAtkComponentNode()->Component->UldManager.NodeList[0]->GetAsAtkCounterNode()->NodeText.ToString());//等级
+                if (i==0)
+                {
+                    continue;
+                }
+                var CurrentExp = DawnAddon->GetNodeById(98 + i)->GetAsAtkComponentNode()->Component->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText.ToString();
+                var MaxExp = DawnAddon->GetNodeById(98 + i)->GetAsAtkComponentNode()->Component->UldManager.NodeList[16]->GetAsAtkTextNode()->NodeText.ToString();
+                if(MaxExp == "--")
+                {
+                    DawnInfo.Characters[i].IsMaxLvl= true;
+                }
+                else
+                {
+                    DawnInfo.Characters[i].CurrentExp = uint.Parse(CurrentExp.Replace(",", ""));
+                    DawnInfo.Characters[i].MaxExp = uint.Parse(MaxExp.Replace(",", ""));
+                }
+            }
+            DawnInfo.DutyName = DawnAddon->UldManager.NodeList[77]->GetAsAtkComponentNode()->Component->UldManager.NodeList[0]->GetAsAtkComponentNode()->Component->UldManager.NodeList[2]->GetAsAtkTextNode()->NodeText.ToString();
+            return DawnInfo;
+        }
 
         private static AtkUnitBase* ToDolistAddon => (AtkUnitBase*)Dalamud.GameGui.GetAddonByName("_ToDoList", 1);
-        public static void GetToDolistInfo()
+        public static Dictionary<uint, string> GetToDolistInfo()
         {
             Dictionary<uint, string> ret =new();
             for(var i = 0;i < ToDolistAddon->UldManager.NodeListCount; i++)
@@ -190,10 +262,18 @@ namespace Trust.Windows
                     ret.Add(NodeID,ToDolistAddon->UldManager.NodeList[i]->GetAsAtkComponentNode()->Component->UldManager.SearchNodeById(6)->GetAsAtkTextNode()->NodeText.ToString());
                 }
             }
-            foreach(var d in ret)
+            return ret;
+        }
+        public static uint DutyStep()
+        {
+            var ToDolistInfo = GetToDolistInfo();
+            var now = 0;
+            foreach(var item in ToDolistInfo)
             {
-                PluginLog.Information(d.Value);
+                if(item.Value != "???")
+                    now++;
             }
+            return (uint)(now - 1);
         }
         #endregion
         private static void Callback(AtkUnitBase* unitBase, params object[] values)

@@ -116,7 +116,8 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         if (ImGui.Button("l"))
         {
-            Func.TrunR(0f);
+            var a = Func.DutyStep();
+            PluginLog.Information(a.ToString());
             //Func.RemovAutoSelectYesContentsFinderConfirmEvent();
         }
     }
